@@ -5,8 +5,10 @@ I am using this project as a way to implement "Environmental Modification" to he
 To do this I will have a display on my wall that will have the status and key information of my goals.
 
 Example:
+
     Goal:
         One of my current goals is to complete all 500 stars of Advent of Code by December 1st.
+
     Environmental Modification:
         Have a display that I walk past every day that says:
             - Current number of stars
