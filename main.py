@@ -8,6 +8,7 @@ import time
 from PIL import Image,ImageDraw,ImageFont
 import traceback
 
+import requests
 
 try:
 
@@ -17,16 +18,46 @@ try:
     epd.Clear()
 
     # Fonts
-    font24 = ImageFont.truetype('Font.ttc', 24)
+    font6 = ImageFont.truetype('Font.ttc', 6)
+    font12 = ImageFont.truetype('Font.ttc', 12)
     font18 = ImageFont.truetype('Font.ttc', 18)
+    font24 = ImageFont.truetype('Font.ttc', 24)
     font35 = ImageFont.truetype('Font.ttc', 35)
     font100 = ImageFont.truetype('Font.ttc', 100)
     font250 = ImageFont.truetype('Font.ttc', 250)
     font500 = ImageFont.truetype('Font.ttc', 500)
 
-    # This e-paper has 4 different shades
-    # I'm only going to be using one shade for right now
+    # Fetch website
+    # url = "https://example.com"
+    url = "https://adventofcode.com/2024"
+    response = requests.get(url)
+    # Check if the request was successful
+    if response.status_code != 200:
+        print(f"Failed to retrieve website. Status code: {response.status_code}")
+        exit()
 
+    # Clear
+    Himage = Image.new('1', (epd.width, epd.height), 255) 
+    draw = ImageDraw.Draw(Himage)
+
+    # Draw the HTML content as text (truncate or wrap as needed)
+    html_content = response.text
+    lines = html_content.split("\n")
+    y_position = 10
+    for line in lines:
+        draw.text((10, y_position), line[:100], font=font12, fill="black")
+        y_position += 20
+    
+    # Save as BMP
+    Himage.save("website.bmp", "BMP")
+    print("Saved as website.bmp")
+
+    #display 4Gray bmp
+    Himage = Image.open('website.bmp')
+    epd.display_4Gray(epd.getbuffer_4Gray(Himage))
+    time.sleep(20)
+
+    '''
     # CLOCK
     while(True):
         # Clear
@@ -37,6 +68,7 @@ try:
         epd.display_Base(epd.getbuffer(Himage))
         time.sleep(60*5)
 
+    '''
     '''
     # Drawing on the Horizontal image
     # Clear
