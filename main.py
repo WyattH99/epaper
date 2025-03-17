@@ -10,6 +10,9 @@ import traceback
 
 import requests
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
 try:
 
     # epd setup
@@ -27,71 +30,41 @@ try:
     font250 = ImageFont.truetype('Font.ttc', 250)
     font500 = ImageFont.truetype('Font.ttc', 500)
 
+    # Set up headless Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless=new")
+
+    # Initialize the WebDriver with options
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.set_window_size(epd.width // 5, epd.height // 2)
+
     # Fetch website
     # url = "https://example.com"
-    url = "https://adventofcode.com/2024"
-    response = requests.get(url)
-    # Check if the request was successful
-    if response.status_code != 200:
-        print(f"Failed to retrieve website. Status code: {response.status_code}")
-        exit()
+    # url = "https://adventofcode.com/2024"
+    # url = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg/1200px-Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg"
+    # url = "https://wolfgang-ziegler.com/posts/2023/aoc2022/aoc2022_50stars.png"
+    url = "https://www.markheath.net/posts/2020/advent-of-code-2020-1.png"
+    driver.get(url)
+    driver.save_screenshot("screenshot.png")
+    driver.quit()
 
-    # Clear
-    Himage = Image.new('1', (epd.width, epd.height), 255) 
-    draw = ImageDraw.Draw(Himage)
-
-    # Draw the HTML content as text (truncate or wrap as needed)
-    html_content = response.text
-    lines = html_content.split("\n")
-    y_position = 10
-    for line in lines:
-        draw.text((10, y_position), line[:100], font=font12, fill="black")
-        y_position += 20
+    img = Image.open("screenshot.png")
+    combined_image = Image.new('1', (epd.width, epd.height), 255)  
     
-    # Save as BMP
-    Himage.save("website.bmp", "BMP")
-    print("Saved as website.bmp")
-
-    #display 4Gray bmp
-    Himage = Image.open('website.bmp')
-    epd.display_4Gray(epd.getbuffer_4Gray(Himage))
+    combined_image.paste(img, (0, 0))
+    combined_image.paste(img, ((epd.width // 5) * 1, 0))
+    combined_image.paste(img, ((epd.width // 5) * 2, 0))
+    combined_image.paste(img, ((epd.width // 5) * 3, 0))
+    combined_image.paste(img, ((epd.width // 5) * 4, 0))
+    combined_image.paste(img, (0, (epd.height // 2)))
+    combined_image.paste(img, ((epd.width // 5) * 1, (epd.height // 2)))
+    combined_image.paste(img, ((epd.width // 5) * 2, (epd.height // 2)))
+    combined_image.paste(img, ((epd.width // 5) * 3, (epd.height // 2)))
+    combined_image.paste(img, ((epd.width // 5) * 4, (epd.height // 2)))
+    
+    epd.display_4Gray(epd.getbuffer_4Gray(combined_image))
+    print("sleep")
     time.sleep(20)
-
-    '''
-    # CLOCK
-    while(True):
-        # Clear
-        Himage = Image.new('1', (epd.width, epd.height), 255) 
-        draw = ImageDraw.Draw(Himage)
-        draw.text((0, epd.height/4), time.strftime('%H:%M:%S'), font = font250, fill = 0)
-        # Write to display
-        epd.display_Base(epd.getbuffer(Himage))
-        time.sleep(60*5)
-
-    '''
-    '''
-    # Drawing on the Horizontal image
-    # Clear
-    Himage = Image.new('1', (epd.width, epd.height), 255) 
-    draw = ImageDraw.Draw(Himage)
-    # Text and Shapes
-    draw.text((10, 0), 'hello world', font = font24, fill = 0)
-    draw.text((10, 20), '13.3inch e-Paper (K)', font = font24, fill = 0)
-    draw.line((20, 50, 70, 100), fill = 0)
-    draw.line((70, 50, 20, 100), fill = 0)
-    draw.rectangle((20, 50, 70, 100), outline = 0)
-    draw.line((165, 50, 165, 100), fill = 0)
-    draw.line((140, 75, 190, 75), fill = 0)
-    draw.arc((140, 50, 190, 100), 0, 360, fill = 0)
-    draw.rectangle((80, 50, 130, 100), fill = 0)
-    draw.chord((200, 50, 250, 100), 0, 360, fill = 0)
-    # Clock
-    draw.rectangle((0, 110, 120, 150), fill = 255)
-    draw.text((10, 120), time.strftime('%H:%M:%S'), font = font24, fill = 0)
-    # Write to display
-    epd.display_Base(epd.getbuffer(Himage))
-    time.sleep(2)
-    '''
 
     # Clear
     epd.init()
