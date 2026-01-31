@@ -8,9 +8,11 @@ import os
 import sys
 import io
 from datetime import datetime
-from urllib.request import urlopen, Request
 
-DEFAULT_URL = "https://www.markheath.net/posts/2020/advent-of-code-2020-1.png"
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+DEFAULT_URL = "https://adventofcode.com/2024"
 
 def get_url():
     """Get URL from command line arg or environment variable."""
@@ -18,13 +20,26 @@ def get_url():
         return sys.argv[1]
     return os.environ.get('EPAPER_URL', DEFAULT_URL)
 
-def fetch_image(url):
-    """Fetch an image from URL and return as PIL Image."""
-    print(f"Fetching: {url}")
-    request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urlopen(request, timeout=30) as response:
-        data = response.read()
-    return Image.open(io.BytesIO(data))
+def capture_webpage(url, width, height):
+    """Capture a webpage screenshot and return as PIL Image."""
+    print("Starting headless browser...")
+    chrome_options = Options()
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.set_window_size(width, height)
+
+    try:
+        print(f"Fetching: {url}")
+        driver.get(url)
+        print("Capturing screenshot...")
+        png_data = driver.get_screenshot_as_png()
+        return Image.open(io.BytesIO(png_data))
+    finally:
+        driver.quit()
 
 def process_image(img, epd):
     """Process image for e-paper display."""
@@ -55,8 +70,8 @@ def main():
         print("Clearing display...")
         epd.Clear()
 
-        # Fetch and process image
-        img = fetch_image(url)
+        # Capture webpage and process image
+        img = capture_webpage(url, epd.width, epd.height)
         combined = process_image(img, epd)
 
         # Display image (e-paper retains image without power)
