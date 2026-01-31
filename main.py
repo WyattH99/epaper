@@ -110,16 +110,16 @@ def process_image(img, epd, authenticated=True, year=None):
     x -= text_img.width
     img.paste(text_img, (x, y))
 
-    # Draw year at bottom right
+    # Draw year at right middle
     if year:
-        font_year = ImageFont.truetype('Font.ttc', 36)
+        font_year = ImageFont.truetype('Font.ttc', 48)
         year_str = f"AoC {year}"
         bbox = font_year.getbbox(year_str)
         year_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
         year_draw = ImageDraw.Draw(year_img)
         year_draw.text((-bbox[0], -bbox[1]), year_str, font=font_year, fill=0)
         year_img = year_img.rotate(90, expand=True)
-        img.paste(year_img, (epd.width - year_img.width - 2 - int(epd.width * 0.10), (epd.height - year_img.height) // 2))
+        img.paste(year_img, (epd.width - year_img.width - 2 - int(epd.width * 0.15), (epd.height - year_img.height) // 2))
 
     # Draw days until December 1st or current AoC day at right middle
     font_days = ImageFont.truetype('Font.ttc', 36)
