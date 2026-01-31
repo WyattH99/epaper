@@ -121,6 +121,23 @@ def process_image(img, epd, authenticated=True, year=None):
         year_img = year_img.rotate(90, expand=True)
         img.paste(year_img, (epd.width - year_img.width - 2, epd.height - year_img.height - 2))
 
+    # Draw days until December 1st or current AoC day at right middle
+    today = datetime.now().date()
+    if today.month == 12 and 1 <= today.day <= 25:
+        days_str = f"Day {today.day} of Advent of Code"
+    else:
+        dec1 = datetime(today.year, 12, 1).date()
+        if today >= dec1:
+            dec1 = datetime(today.year + 1, 12, 1).date()
+        days_until = (dec1 - today).days
+        days_str = f"{days_until} days until Dec 1"
+    bbox = font18.getbbox(days_str)
+    days_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
+    days_draw = ImageDraw.Draw(days_img)
+    days_draw.text((-bbox[0], -bbox[1]), days_str, font=font18, fill=0)
+    days_img = days_img.rotate(90, expand=True)
+    img.paste(days_img, (epd.width - days_img.width - 2, (epd.height - days_img.height) // 2))
+
     return img
 
 def main():
