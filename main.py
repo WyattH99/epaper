@@ -9,8 +9,7 @@ import sys
 import io
 from datetime import datetime
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+import imgkit
 
 DEFAULT_URL = "https://adventofcode.com/2024"
 
@@ -22,24 +21,15 @@ def get_url():
 
 def capture_webpage(url, width, height):
     """Capture a webpage screenshot and return as PIL Image."""
-    print("Starting headless browser...")
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.set_window_size(width, height)
-
-    try:
-        print(f"Fetching: {url}")
-        driver.get(url)
-        print("Capturing screenshot...")
-        png_data = driver.get_screenshot_as_png()
-        return Image.open(io.BytesIO(png_data))
-    finally:
-        driver.quit()
+    print(f"Fetching: {url}")
+    options = {
+        'width': width,
+        'height': height,
+        'quiet': ''
+    }
+    print("Rendering webpage...")
+    img_bytes = imgkit.from_url(url, False, options=options)
+    return Image.open(io.BytesIO(img_bytes))
 
 def process_image(img, epd):
     """Process image for e-paper display."""
