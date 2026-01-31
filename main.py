@@ -32,21 +32,16 @@ def process_image(img, epd):
     img = img.convert('L')
     img = ImageOps.invert(img)
     img = ImageEnhance.Contrast(img).enhance(10.0)
-    img = img.resize((epd.width // 5, epd.height // 2), Image.Resampling.LANCZOS)
-
-    # Tile image in 5x2 grid
-    combined = Image.new('L', (epd.width, epd.height), 255)
-    for row in range(2):
-        for col in range(5):
-            combined.paste(img, (col * (epd.width // 5), row * (epd.height // 2)))
+    img = img.rotate(90, expand=True)
+    img = ImageOps.fit(img, (epd.width, epd.height), Image.Resampling.LANCZOS)
 
     # Draw date
     font18 = ImageFont.truetype('Font.ttc', 18)
-    draw = ImageDraw.Draw(combined)
+    draw = ImageDraw.Draw(img)
     date_str = datetime.now().strftime('%m-%d-%Y')
     draw.text((2, 0), date_str, font=font18, fill=0)
 
-    return combined
+    return img
 
 def main():
     epd = None
