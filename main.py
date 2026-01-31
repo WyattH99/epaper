@@ -6,11 +6,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 
 import os
 import sys
-import tempfile
+import io
 from datetime import datetime
-
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from urllib.request import urlopen, Request
 
 DEFAULT_URL = "https://www.markheath.net/posts/2020/advent-of-code-2020-1.png"
 
@@ -20,28 +18,13 @@ def get_url():
         return sys.argv[1]
     return os.environ.get('EPAPER_URL', DEFAULT_URL)
 
-def capture_screenshot(url, width, height):
-    """Capture a screenshot of the URL and return as PIL Image."""
-    print("Starting headless browser...")
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")
-
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.set_window_size(width, height)
-
-    try:
-        print(f"Fetching: {url}")
-        driver.get(url)
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
-            temp_path = f.name
-        print("Capturing screenshot...")
-        driver.save_screenshot(temp_path)
-        img = Image.open(temp_path)
-        img.load()  # Load image data before deleting file
-        os.unlink(temp_path)
-        return img
-    finally:
-        driver.quit()
+def fetch_image(url):
+    """Fetch an image from URL and return as PIL Image."""
+    print(f"Fetching: {url}")
+    request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    with urlopen(request, timeout=30) as response:
+        data = response.read()
+    return Image.open(io.BytesIO(data))
 
 def process_image(img, epd):
     """Process image for e-paper display."""
@@ -77,8 +60,8 @@ def main():
         print("Clearing display...")
         epd.Clear()
 
-        # Capture and process image
-        img = capture_screenshot(url, epd.width, epd.height)
+        # Fetch and process image
+        img = fetch_image(url)
         combined = process_image(img, epd)
 
         # Display image (e-paper retains image without power)
