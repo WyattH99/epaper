@@ -69,11 +69,22 @@ def process_image(img, epd, authenticated=True):
     img = img.rotate(90, expand=True)
     img = ImageOps.fit(img, (epd.width, epd.height), Image.Resampling.LANCZOS, centering=(0.25, 1.0))
 
-    font18 = ImageFont.truetype('Font.ttc', 18)
+    font18 = ImageFont.truetype('Font.ttc', 24)
     x = epd.width - 2
     y = 2
 
-    # Draw warning if not authenticated
+    # Draw SSH info (rightmost)
+    ssh_str = get_ssh_info()
+    bbox = font18.getbbox(ssh_str)
+    ssh_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
+    ssh_draw = ImageDraw.Draw(ssh_img)
+    ssh_draw.text((-bbox[0], -bbox[1]), ssh_str, font=font18, fill=0)
+    ssh_img = ssh_img.rotate(90, expand=True)
+    x -= ssh_img.width
+    img.paste(ssh_img, (x, y))
+    x -= 5  # spacing
+
+    # Draw warning if not authenticated (middle)
     if not authenticated:
         warn_str = "SESSION EXPIRED"
         bbox = font18.getbbox(warn_str)
@@ -85,7 +96,7 @@ def process_image(img, epd, authenticated=True):
         img.paste(warn_img, (x, y))
         x -= 5  # spacing
 
-    # Draw date rotated 90 degrees at top right
+    # Draw date (leftmost)
     date_str = datetime.now().strftime('%m-%d-%Y')
     bbox = font18.getbbox(date_str)
     text_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
@@ -94,17 +105,6 @@ def process_image(img, epd, authenticated=True):
     text_img = text_img.rotate(90, expand=True)
     x -= text_img.width
     img.paste(text_img, (x, y))
-    x -= 5  # spacing
-
-    # Draw SSH info rotated 90 degrees
-    ssh_str = get_ssh_info()
-    bbox = font18.getbbox(ssh_str)
-    ssh_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
-    ssh_draw = ImageDraw.Draw(ssh_img)
-    ssh_draw.text((-bbox[0], -bbox[1]), ssh_str, font=font18, fill=0)
-    ssh_img = ssh_img.rotate(90, expand=True)
-    x -= ssh_img.width
-    img.paste(ssh_img, (x, y))
 
     return img
 
@@ -121,9 +121,15 @@ def main():
         epd.Clear()
 
         # Check authentication and capture webpage
+        print("Checking authentication...")
         authenticated = check_auth(url)
-        if not authenticated and os.environ.get('AOC_SESSION'):
-            print("Warning: Session cookie expired or invalid")
+        if os.environ.get('AOC_SESSION'):
+            if authenticated:
+                print("Session: Valid")
+            else:
+                print("Session: EXPIRED or invalid")
+        else:
+            print("Session: No AOC_SESSION set")
         zoom = 1.5
         img = capture_webpage(url, int(epd.width * zoom), int(epd.height * zoom))
         combined = process_image(img, epd, authenticated)
