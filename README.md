@@ -41,18 +41,46 @@ Create `~/.env` on your Pi:
 export AOC_SESSION=your_session_cookie_here
 ```
 
-### Cron setup
-
-To run with authentication via cron:
-```bash
-# Source the env file before running
-* * * * * . ~/.env && cd ~/repos/epaper && python main.py
-```
-
-Or define the variable directly in crontab:
-```bash
-AOC_SESSION=your_session_cookie_here
-* * * * * cd ~/repos/epaper && python main.py
-```
-
 The session cookie typically lasts about 30 days.
+
+## Scheduling Automatic Updates (Cron)
+
+Set up a cron job to automatically update the display on a schedule.
+
+### Install cron (if needed)
+
+```bash
+sudo apt install cron
+sudo systemctl enable cron
+sudo systemctl start cron
+```
+
+### Edit crontab
+
+```bash
+crontab -e
+```
+
+### Example schedules
+
+```bash
+# Run daily at 3am
+0 3 * * * . ~/.env && cd ~/repos/epaper && python main.py
+
+# Run every hour
+0 * * * * . ~/.env && cd ~/repos/epaper && python main.py
+
+# Run every 30 minutes
+*/30 * * * * . ~/.env && cd ~/repos/epaper && python main.py
+
+# Run on boot
+@reboot . ~/.env && cd ~/repos/epaper && python main.py
+```
+
+### Verify
+
+```bash
+crontab -l
+```
+
+Cron jobs persist across reboots.
