@@ -137,7 +137,7 @@ def process_image(img, epd, authenticated=True, year=None):
     days_draw = ImageDraw.Draw(days_img)
     days_draw.text((-bbox[0], -bbox[1]), days_str, font=font_days, fill=0)
     days_img = days_img.rotate(90, expand=True)
-    img.paste(days_img, (epd.width - days_img.width - 2 - int(epd.width * 0.20), (epd.height - days_img.height) // 2))
+    img.paste(days_img, (epd.width - days_img.width - 2 - int(epd.width * 0.10), (epd.height - days_img.height) // 2))
 
     return img
 
