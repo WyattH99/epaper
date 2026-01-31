@@ -55,7 +55,7 @@ def capture_webpage(url, width, height):
     }
     session = os.environ.get('AOC_SESSION')
     if session:
-        options['cookie'] = ('session', session)
+        options['custom-header'] = ('Cookie', f'session={session}')
     print("Rendering webpage...")
     img_bytes = imgkit.from_url(url, False, options=options)
     return Image.open(io.BytesIO(img_bytes))
