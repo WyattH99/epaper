@@ -14,7 +14,7 @@ import urllib.request
 import socket
 import getpass
 
-DEFAULT_URL = "https://adventofcode.com/2024"
+DEFAULT_URL = "https://adventofcode.com/2025"
 
 def get_url():
     """Get URL from command line arg or environment variable."""
