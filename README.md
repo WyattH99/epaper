@@ -24,6 +24,23 @@ The idea here is that if I'm reminded every day of the goal I am working towards
 2. Enable SPI interface: `sudo raspi-config` → Interface Options → SPI → Enable
 3. Reboot
 
+## Usage
+
+Run manually:
+```bash
+cd ~/repos/epaper && python main.py
+```
+
+With authentication:
+```bash
+. ~/.env && cd ~/repos/epaper && python main.py
+```
+
+With a specific URL:
+```bash
+python main.py https://adventofcode.com/2024
+```
+
 ## Year Cycling
 
 By default, the display cycles through Advent of Code years 2015-2025 based on the current hour:
