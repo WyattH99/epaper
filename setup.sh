@@ -4,9 +4,9 @@ sudo apt-get update
 sudo apt-get install python3-pip
 sudo apt-get install python3-pil
 sudo apt-get install python3-numpy
-sudo pip3 install spidev
+sudo pip3 install --break-system-packages spidev
 sudo apt install python3-gpiozero
 sudo apt install wkhtmltopdf
-sudo pip3 install imgkit
+sudo pip3 install --break-system-packages imgkit
 
 echo -e "\n\nNext enable the SPI interface using \"sudo raspi-config\" and reboot\n\n"
