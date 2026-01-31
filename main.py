@@ -14,13 +14,17 @@ import urllib.request
 import socket
 import getpass
 
-DEFAULT_URL = "https://adventofcode.com/2025"
+AOC_YEARS = list(range(2015, 2026))  # 2015-2025
 
 def get_url():
-    """Get URL from command line arg or environment variable."""
+    """Get URL from command line arg, environment variable, or cycle through AoC years."""
     if len(sys.argv) > 1:
         return sys.argv[1]
-    return os.environ.get('EPAPER_URL', DEFAULT_URL)
+    if os.environ.get('EPAPER_URL'):
+        return os.environ.get('EPAPER_URL')
+    # Cycle through years based on current hour
+    year = AOC_YEARS[datetime.now().hour % len(AOC_YEARS)]
+    return f"https://adventofcode.com/{year}"
 
 def get_ssh_info():
     """Get username@ip for SSH connection."""
@@ -60,7 +64,7 @@ def capture_webpage(url, width, height):
     img_bytes = imgkit.from_url(url, False, options=options)
     return Image.open(io.BytesIO(img_bytes))
 
-def process_image(img, epd, authenticated=True):
+def process_image(img, epd, authenticated=True, year=None):
     """Process image for e-paper display."""
     print("Processing image...")
     img = img.convert('L')
@@ -106,6 +110,17 @@ def process_image(img, epd, authenticated=True):
     x -= text_img.width
     img.paste(text_img, (x, y))
 
+    # Draw year at bottom right
+    if year:
+        font_year = ImageFont.truetype('Font.ttc', 36)
+        year_str = f"AoC {year}"
+        bbox = font_year.getbbox(year_str)
+        year_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
+        year_draw = ImageDraw.Draw(year_img)
+        year_draw.text((-bbox[0], -bbox[1]), year_str, font=font_year, fill=0)
+        year_img = year_img.rotate(90, expand=True)
+        img.paste(year_img, (epd.width - year_img.width - 2, epd.height - year_img.height - 2))
+
     return img
 
 def main():
@@ -130,9 +145,11 @@ def main():
                 print("Session: EXPIRED or invalid")
         else:
             print("Session: No AOC_SESSION set")
+        # Extract year from URL
+        year = url.rstrip('/').split('/')[-1] if 'adventofcode.com' in url else None
         zoom = 1.35
         img = capture_webpage(url, int(epd.width * zoom), int(epd.height * zoom))
-        combined = process_image(img, epd, authenticated)
+        combined = process_image(img, epd, authenticated, year)
 
         # Display image (e-paper retains image without power)
         print("Rendering to display...")
