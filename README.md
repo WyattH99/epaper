@@ -24,6 +24,19 @@ The idea here is that if I'm reminded every day of the goal I am working towards
 2. Enable SPI interface: `sudo raspi-config` → Interface Options → SPI → Enable
 3. Reboot
 
+## Year Cycling
+
+By default, the display cycles through Advent of Code years 2015-2025 based on the current hour:
+- Hour 0 → 2015
+- Hour 1 → 2016
+- ...
+- Hour 10 → 2025
+- Hour 11 → 2015 (wraps)
+
+The current year is displayed at the bottom right of the screen.
+
+To override this and display a specific URL, set the `EPAPER_URL` environment variable or pass a URL as a command line argument.
+
 ## Authentication (Optional)
 
 To display authenticated Advent of Code pages (showing your personal progress), you need to provide a session cookie.
