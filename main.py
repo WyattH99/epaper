@@ -27,6 +27,9 @@ def capture_webpage(url, width, height):
         'height': height,
         'quiet': ''
     }
+    session = os.environ.get('AOC_SESSION')
+    if session:
+        options['cookie'] = [('session', session, 'adventofcode.com')]
     print("Rendering webpage...")
     img_bytes = imgkit.from_url(url, False, options=options)
     return Image.open(io.BytesIO(img_bytes))
