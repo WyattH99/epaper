@@ -10,6 +10,9 @@ import io
 from datetime import datetime
 
 import imgkit
+import urllib.request
+import socket
+import getpass
 
 DEFAULT_URL = "https://adventofcode.com/2024"
 
@@ -18,6 +21,29 @@ def get_url():
     if len(sys.argv) > 1:
         return sys.argv[1]
     return os.environ.get('EPAPER_URL', DEFAULT_URL)
+
+def get_ssh_info():
+    """Get username@ip for SSH connection."""
+    username = getpass.getuser()
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+    except:
+        ip = '?'
+    return f"{username}@{ip}"
+
+def check_auth(url):
+    """Check if session cookie is valid by looking for login link."""
+    session = os.environ.get('AOC_SESSION')
+    if not session:
+        return False
+    req = urllib.request.Request(url)
+    req.add_header('Cookie', f'session={session}')
+    with urllib.request.urlopen(req) as response:
+        html = response.read().decode('utf-8')
+        return '[Log Out]' in html
 
 def capture_webpage(url, width, height):
     """Capture a webpage screenshot and return as PIL Image."""
@@ -34,7 +60,7 @@ def capture_webpage(url, width, height):
     img_bytes = imgkit.from_url(url, False, options=options)
     return Image.open(io.BytesIO(img_bytes))
 
-def process_image(img, epd):
+def process_image(img, epd, authenticated=True):
     """Process image for e-paper display."""
     print("Processing image...")
     img = img.convert('L')
@@ -43,17 +69,42 @@ def process_image(img, epd):
     img = img.rotate(90, expand=True)
     img = ImageOps.fit(img, (epd.width, epd.height), Image.Resampling.LANCZOS, centering=(0.25, 1.0))
 
-    # Draw date rotated 90 degrees at bottom right
     font18 = ImageFont.truetype('Font.ttc', 18)
+    x = epd.width - 2
+    y = 2
+
+    # Draw warning if not authenticated
+    if not authenticated:
+        warn_str = "SESSION EXPIRED"
+        bbox = font18.getbbox(warn_str)
+        warn_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
+        warn_draw = ImageDraw.Draw(warn_img)
+        warn_draw.text((-bbox[0], -bbox[1]), warn_str, font=font18, fill=0)
+        warn_img = warn_img.rotate(90, expand=True)
+        x -= warn_img.width
+        img.paste(warn_img, (x, y))
+        x -= 5  # spacing
+
+    # Draw date rotated 90 degrees at top right
     date_str = datetime.now().strftime('%m-%d-%Y')
     bbox = font18.getbbox(date_str)
     text_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
     text_draw = ImageDraw.Draw(text_img)
     text_draw.text((-bbox[0], -bbox[1]), date_str, font=font18, fill=0)
     text_img = text_img.rotate(90, expand=True)
-    x = epd.width - text_img.width - 2
-    y = 2
+    x -= text_img.width
     img.paste(text_img, (x, y))
+    x -= 5  # spacing
+
+    # Draw SSH info rotated 90 degrees
+    ssh_str = get_ssh_info()
+    bbox = font18.getbbox(ssh_str)
+    ssh_img = Image.new('L', (bbox[2] - bbox[0], bbox[3] - bbox[1]), 255)
+    ssh_draw = ImageDraw.Draw(ssh_img)
+    ssh_draw.text((-bbox[0], -bbox[1]), ssh_str, font=font18, fill=0)
+    ssh_img = ssh_img.rotate(90, expand=True)
+    x -= ssh_img.width
+    img.paste(ssh_img, (x, y))
 
     return img
 
@@ -69,10 +120,13 @@ def main():
         print("Clearing display...")
         epd.Clear()
 
-        # Capture webpage and process image
+        # Check authentication and capture webpage
+        authenticated = check_auth(url)
+        if not authenticated and os.environ.get('AOC_SESSION'):
+            print("Warning: Session cookie expired or invalid")
         zoom = 1.5
         img = capture_webpage(url, int(epd.width * zoom), int(epd.height * zoom))
-        combined = process_image(img, epd)
+        combined = process_image(img, epd, authenticated)
 
         # Display image (e-paper retains image without power)
         print("Rendering to display...")
