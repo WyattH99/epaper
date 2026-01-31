@@ -130,7 +130,7 @@ def main():
                 print("Session: EXPIRED or invalid")
         else:
             print("Session: No AOC_SESSION set")
-        zoom = 1.25
+        zoom = 1.3
         img = capture_webpage(url, int(epd.width * zoom), int(epd.height * zoom))
         combined = process_image(img, epd, authenticated)
 
