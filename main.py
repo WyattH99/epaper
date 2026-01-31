@@ -38,7 +38,7 @@ def process_image(img, epd):
     img = ImageOps.invert(img)
     img = ImageEnhance.Contrast(img).enhance(10.0)
     img = img.rotate(90, expand=True)
-    img = ImageOps.fit(img, (epd.width, epd.height), Image.Resampling.LANCZOS, centering=(0.25, 0.25))
+    img = ImageOps.fit(img, (epd.width, epd.height), Image.Resampling.LANCZOS, centering=(0.25, 0.75))
 
     # Draw date rotated 90 degrees at bottom right
     font18 = ImageFont.truetype('Font.ttc', 18)
