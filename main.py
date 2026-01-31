@@ -67,7 +67,7 @@ def main():
         epd.Clear()
 
         # Capture webpage and process image
-        zoom = 1.25
+        zoom = 1.5
         img = capture_webpage(url, int(epd.width * zoom), int(epd.height * zoom))
         combined = process_image(img, epd)
 
