@@ -38,7 +38,7 @@ def process_image(img, epd):
     img = ImageOps.invert(img)
     img = ImageEnhance.Contrast(img).enhance(10.0)
     img = img.rotate(90, expand=True)
-    img = ImageOps.fit(img, (epd.width, epd.height), Image.Resampling.LANCZOS, centering=(0.25, 0.75))
+    img = ImageOps.fit(img, (epd.width, epd.height), Image.Resampling.LANCZOS, centering=(0.25, 1.0))
 
     # Draw date rotated 90 degrees at bottom right
     font18 = ImageFont.truetype('Font.ttc', 18)
@@ -67,7 +67,8 @@ def main():
         epd.Clear()
 
         # Capture webpage and process image
-        img = capture_webpage(url, epd.width, epd.height)
+        zoom = 1.25
+        img = capture_webpage(url, int(epd.width * zoom), int(epd.height * zoom))
         combined = process_image(img, epd)
 
         # Display image (e-paper retains image without power)
